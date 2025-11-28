@@ -14,5 +14,5 @@ document.getElementById("signupForm").addEventListener("submit", function (event
   localStorage.setItem("userPassword", password);
 
   alert("Signup successful! You can now login.");
-  window.location.href = "login.html";
+  window.location.href = "index.html";
 });
