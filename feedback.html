@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Smart Commute | Feedback</title>
+  <link rel="stylesheet" href="feedback.css"/>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- INFO BANNER -->
+  <div class="info-banner">
+    <i data-lucide="alert-circle" class="icon"></i>
+    <div>
+      <h3>Help Improve Public Transport</h3>
+      <p>Your feedback helps authorities resolve issues faster.</p>
+    </div>
+  </div>
+
+  <!-- FEEDBACK FORM -->
+  <div class="glass-card">
+    <h2>Report an Issue</h2>
+
+    <form id="feedbackForm">
+      <div class="field">
+        <label>Issue Type</label>
+        <select id="issueType" required>
+          <option value="">Select issue type</option>
+          <option value="delay">Bus Delay / No Show</option>
+          <option value="crowding">Overcrowding</option>
+          <option value="cleanliness">Cleanliness</option>
+          <option value="safety">Safety Concern</option>
+          <option value="route">Route Problem</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Route Number</label>
+        <input id="routeInput" type="text" placeholder="e.g. 23F, 45" required/>
+      </div>
+
+      <div class="field">
+        <label>Description</label>
+        <textarea id="description" rows="4" placeholder="Describe the issue..." required></textarea>
+      </div>
+
+      <button type="submit" class="submit-btn">
+        <i data-lucide="send"></i>
+        Submit Feedback
+      </button>
+    </form>
+
+    <!-- SUCCESS MESSAGE -->
+    <div id="successMessage" class="success-box" style="display:none;">
+      <i data-lucide="check-circle"></i>
+      <h3>Thank You!</h3>
+      <p>Your report was submitted successfully.</p>
+    </div>
+  </div>
+
+  <!-- QUICK REPORT -->
+  <div class="glass-card">
+    <h3>Quick Report</h3>
+
+    <div class="quick-grid">
+      <button class="qr-btn delay" data-issue="delay">
+        <i data-lucide="clock"></i> Bus Delayed
+      </button>
+      <button class="qr-btn crowding" data-issue="crowding">
+        <i data-lucide="users"></i> Overcrowded
+      </button>
+      <button class="qr-btn safety" data-issue="safety">
+        <i data-lucide="alert-circle"></i> Safety Issue
+      </button>
+      <button class="qr-btn clean" data-issue="cleanliness">
+        <i data-lucide="bus"></i> Cleanliness
+      </button>
+    </div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="glass-card">
+    <div class="history-header">
+      <h3>Your Feedback History</h3>
+      <button id="toggleHistoryBtn">View All</button>
+    </div>
+    <div id="historyList" class="history-list" style="display:none;"></div>
+  </div>
+
+  <!-- COMMUNITY IMPACT -->
+  <div class="glass-card community">
+    <h3>Community Impact</h3>
+
+    <div class="impact-row">
+      <span>Your Reports</span>
+      <span id="stat-reports">12</span>
+    </div>
+    <div class="impact-row">
+      <span>Resolved Issues</span>
+      <span id="stat-resolved">8</span>
+    </div>
+    <div class="impact-row">
+      <span>Community Rating</span>
+      <span id="stat-rating">⭐ 4.5</span>
+    </div>
+  </div>
+
+</div>
+
+<script src="feedback.js"></script>
+<script>lucide.createIcons();</script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+{
+  "quickActions": "ಕ್ವಿಕ್ ಆಕ್ಷನ್ಸ್",
+  "liveTracking": "ಲೈವ್ ಟ್ರ್ಯಾಕಿಂಗ್",
+  "planRoute": "ರಸ್ತೆ ಯೋಜನೆ",
+  "nearbyStops": "ನಿಕಟ ನಿಲ್ದಾಣಗಳು",
+  "reportIssue": "ಸಮಸ್ಯೆ ವರದಿ ಮಾಡಿ",
+
+  "savedRoutes": "ಉಳಿಸಲಾದ ಮಾರ್ಗಗಳು",
+  "onTime": "ಸಮಯಕ್ಕೆ",
+  "delayed": "ವಿಲಂಬಿತವಾಗಿದೆ",
+
+  "commuteStats": "ನಿಮ್ಮ_commute ಸ್ಟ್ಯಾಟ್ಸ್",
+  "avgTime": "ಸರಾಸರಿ ಸಮಯ",
+  "tripsWeek": "ಸಪ್ತಾಹದ ಪ್ರಯಾಣಗಳು",
+  "thisWeek": "ಈ ವಾರ",
+
+  "busStopsHeading": "ಬಸ್ ನಿಲ್ದಾಣಗಳು",
+
+  "delayTitle": "ಮಾರ್ಗ {route} ಗೆ ವಿಳಂಬವಾಗಿದೆ",
+  "delayDesc": "ಆಶಿಸುವ ವಿಳಂಬ: ಟ್ರಾಫಿಕ್ ಕಾರಣದಿಂದ {time} ನಿಮಿಷ",
+  "nextLabel": "ಮುಂದೆ: {time}",
+  "routesLabel": "ಮಾರ್ಗಗಳು: {routes}",
+  "busItem": "<strong>{route}</strong> — {time} — ವಿಳಂಬ: {delay} ನಿಮಿಷ",
+  "stopItem": "{name}"
+}

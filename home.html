@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Commute | Home</title>
+  <link rel="stylesheet" href="home.css" />
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    /* Timetable styles */
+    .timetable-card {
+      background: #111010;
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 20px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+    }
+
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid #313131;
+      text-align: left;
+      font-size: 14px;
+    }
+
+    th {
+      background: #373737;
+    }
+
+    .on-time {
+      color: green;
+      font-weight: bold;
+    }
+
+    .delayed {
+      color: red;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="logo">
+    <i data-lucide="bus"></i>
+    <span>NammaSawari</span>
+  </div>
+
+  <div class="lang-switch">
+    <button>EN</button>
+    <button>हिं</button>
+    <button>ಕ▶</button>
+  </div>
+</header>
+
+<main class="container">
+
+  <!-- ALERT -->
+  <div class="alert-card">
+    <i data-lucide="alert-triangle"></i>
+    <div>
+      <h4>Route 45 Delayed</h4>
+      <p>Expected delay: 15 minutes due to traffic</p>
+    </div>
+  </div>
+
+  <!-- QUICK ACTIONS -->
+  <section>
+    <h2>Quick Actions</h2>
+
+    <div class="actions-grid">
+      <a href="livetracking.html" class="action-tile" target="_blank">
+        <div class="action-icon blue"><i data-lucide="bus"></i></div>
+        <span>Live Tracking</span>
+      </a>
+
+      <a href="planner.html" class="action-tile" target="_blank">
+        <div class="action-icon green"><i data-lucide="map"></i></div>
+        <span>Plan Route</span>
+      </a>
+
+      <a href="nearby.html" class="action-tile" target="_blank">
+        <div class="action-icon purple"><i data-lucide="navigation"></i></div>
+        <span>Nearby Stops</span>
+      </a>
+
+      <a href="feedback.html" class="action-tile" target="_blank">
+        <div class="action-icon orange"><i data-lucide="message-square"></i></div>
+        <span>Report Issue</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- SAVED ROUTES -->
+  <section>
+    <h2>Saved Routes</h2>
+    <div class="routes-list" id="routes-list"></div>
+  </section>
+
+  <!-- ✅ FIXED COMMUTE STATS -->
+  <section>
+    <h2>Your Commute Stats</h2>
+
+    <div class="stats-grid">
+      <div class="stat-box">
+        <i data-lucide="clock"></i>
+        <h3>23 min</h3>
+        <p>Avg. Time</p>
+      </div>
+
+      <div class="stat-box">
+        <i data-lucide="trending-up"></i>
+        <h3>10</h3>
+        <p>Trips / Week</p>
+      </div>
+
+      <div class="stat-box">
+        <i data-lucide="wallet"></i>
+        <h3>₹241</h3>
+        <p>This Week</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ✅ LIVE BUS TIMETABLE -->
+  <section>
+    <div class="timetable-card">
+      <h2>🕒 Live Bus Timetable</h2>
+      <p>Simulated real-time updates every 10 seconds</p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Route</th>
+            <th>Bus No.</th>
+            <th>Scheduled</th>
+            <th>Arrival In</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="timetableBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- BUS STOPS -->
+  <section>
+    <h2></h2>
+    <ul id="stops-list" class="stops-list"></ul>
+  </section>
+
+</main>
+
+<!-- ✅ UPDATED JS FOR BANGALORE TIMETABLE -->
+<script>
+  const routes = [
+    "Majestic → Electronic City",
+    "Whitefield → KR Market",
+    "Yelahanka → Silk Board",
+    "BTM Layout → Indiranagar",
+    "Hebbal → MG Road",
+    "Jayanagar → Banashankari",
+    "KR Puram → Marathahalli",
+    "Yeshwanthpur → Cubbon Park"
+  ];
+
+  function randomBusNo() {
+    return `KA-${Math.floor(10 + Math.random()*90)} ${Math.floor(1000 + Math.random()*9000)}`;
+  }
+
+  function randomTime() {
+    let hour = 7 + Math.floor(Math.random()*3);
+    let min = Math.floor(Math.random()*60);
+    return `${hour}:${min.toString().padStart(2, "0")} AM`;
+  }
+
+  function getStatusObj() {
+    const delay = Math.floor(Math.random()*10);
+    if (delay > 4) {
+      return {
+        text: `Delayed by ${delay} min`,
+        className: "delayed",
+        arrive: `${delay + 2} min`
+      };
+    }
+    return {
+      text: "On Time",
+      className: "on-time",
+      arrive: `${Math.floor(Math.random()*5)+1} min`
+    };
+  }
+
+  function renderTimetable() {
+    const tbody = document.getElementById("timetableBody");
+    tbody.innerHTML = "";
+
+    for (let i = 0; i < 5; i++) {
+      const status = getStatusObj();
+
+      const row = `
+        <tr>
+          <td>${routes[Math.floor(Math.random()*routes.length)]}</td>
+          <td>${randomBusNo()}</td>
+          <td>${randomTime()}</td>
+          <td>${status.arrive}</td>
+          <td class="${status.className}">${status.text}</td>
+        </tr>
+      `;
+      tbody.innerHTML += row;
+    }
+  }
+
+  renderTimetable();
+  setInterval(renderTimetable, 10000);
+</script>
+
+<script src="home.js"></script>
+<script>lucide.createIcons();</script>
+
+</body>
+</html>

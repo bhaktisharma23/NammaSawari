@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Route Planner — SmartCommute</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg: #071026;
+      --panel: #0b1a2b;
+      --muted: #94a3b8;
+      --accent: #2dd4bf;
+      --glass: rgba(255,255,255,0.03);
+      --card: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      --danger: #fb7185;
+      --success: #34d399;
+    }
+    *{box-sizing:border-box}
+    body{
+      font-family: "Inter",system-ui,Arial;
+      margin:0;
+      background: radial-gradient(1200px 400px at 10% 5%, rgba(15,23,42,0.6), transparent),
+                  linear-gradient(180deg,#04111a 0%, #071026 100%);
+      color: #e6eef6;
+    }
+
+    .container{max-width:960px;margin:28px auto;padding:22px;}
+    .search-card{background: var(--panel);border-radius:14px;padding:18px;}
+    h1{margin:0 0 8px 0;font-size:20px;}
+    .row{display:flex;gap:12px;}
+    .col{flex:1}
+    input[type="text"]{width:100%;padding:12px;border-radius:10px;background:#0b1a2b;color:white;border:1px solid rgba(255,255,255,0.04);}
+    .btn{background:#06b6d4;color:#032024;border:none;padding:12px 16px;border-radius:10px;cursor:pointer;font-weight:600;}
+    .btn.secondary{background:transparent;border:1px solid rgba(255,255,255,0.04);color:#94a3b8;}
+    .panel{background:rgba(255,255,255,0.03);border-radius:12px;padding:12px;margin-top:14px;}
+    .chip{background:#071026;padding:8px 12px;border-radius:999px;color:#94a3b8;border:1px solid rgba(255,255,255,0.02);cursor:pointer;}
+    .route-card{background:#071026;border-radius:12px;padding:14px;margin-bottom:12px;border:1px solid rgba(255,255,255,0.04);display:grid;grid-template-columns: 1fr 150px;}
+    .pill{padding:8px 10px;border-radius:999px;font-weight:600;font-size:13px;text-align:center;}
+    .fare{background:#0b1a2b;color:#cceef5;}
+    .time{background:#000;color:white;margin-top:6px;}
+    .status-on{color:#34d399;font-weight:700;}
+    .status-delay{color:#fb7185;font-weight:700;}
+    a.maps-link{color:#2dd4bf;font-size:13px;text-decoration:none;display:block;margin-top:8px;}
+  </style>
+</head>
+
+<body>
+<div class="container">
+  <div class="search-card">
+    <h1>Plan Your Journey</h1>
+
+    <div class="row">
+      <div class="col">
+        <input id="origin" type="text" placeholder="From location">
+      </div>
+      <div class="col">
+        <input id="destination" type="text" placeholder="Destination">
+      </div>
+    </div>
+
+    <div style="margin-top:10px;">
+      <button id="useGps" class="btn secondary">📍 Use My GPS</button>
+      <button id="search" class="btn">Search Routes</button>
+    </div>
+
+    <div id="recent" class="panel"></div>
+    <div id="results"></div>
+  </div>
+</div>
+
+<script>
+const originEl = document.getElementById('origin');
+const destEl = document.getElementById('destination');
+const searchBtn = document.getElementById('search');
+const useGpsBtn = document.getElementById('useGps');
+const resultsEl = document.getElementById('results');
+
+let userLat = null, userLon = null;
+
+function haversine(lat1, lon1, lat2, lon2){
+  const R = 6371e3;
+  const φ1 = lat1*Math.PI/180, φ2 = lat2*Math.PI/180;
+  const Δφ = (lat2-lat1)*Math.PI/180;
+  const Δλ = (lon2-lon1)*Math.PI/180;
+  const a = Math.sin(Δφ/2)**2 + Math.cos(φ1)*Math.cos(φ2)*Math.sin(Δλ/2)**2;
+  const c = 2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R*c;
+}
+
+async function getNearestBusStop(lat, lon){
+  const query = `[out:json];node["highway"="bus_stop"](around:1500,${lat},${lon});out;`;
+  const res = await fetch('https://overpass-api.de/api/interpreter', { method:'POST', body: query });
+  const data = await res.json();
+  if(!data.elements.length) return null;
+  let best = data.elements[0];
+  let bestDist = haversine(lat, lon, best.lat, best.lon);
+  for(const el of data.elements){
+    const d = haversine(lat, lon, el.lat, el.lon);
+    if(d < bestDist){ best = el; bestDist = d; }
+  }
+  return {name: best.tags?.name || "Bus Stop", lat: best.lat, lon: best.lon};
+}
+
+function randomBusNo(){
+  return "BUS-" + Math.floor(100 + Math.random()*900);
+}
+
+function generateTimes(){
+  const now = new Date();
+  let times = [];
+  for(let i=1;i<=3;i++){
+    let d = new Date(now.getTime()+i*10*60000);
+    times.push(d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}));
+  }
+  return times;
+}
+
+async function performSearch(from, to){
+  resultsEl.innerHTML = "Loading routes...";
+
+  if(!userLat || !userLon){
+    try{
+      const pos = await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej));
+      userLat = pos.coords.latitude;
+      userLon = pos.coords.longitude;
+    }catch{}
+  }
+
+  let nearest = null;
+  if(userLat && userLon){
+    nearest = await getNearestBusStop(userLat,userLon);
+  }
+
+  const routes = [];
+  for(let i=0;i<3;i++){
+    const delayed = Math.random()<0.3;
+    routes.push({
+      busNo: randomBusNo(),
+      fare: "₹" + (10 + i*5),
+      time: generateTimes().join(" • "),
+      status: delayed ? "Delayed" : "On Time",
+      delayMin: delayed ? Math.floor(5+Math.random()*10) : 0
+    });
+  }
+
+  resultsEl.innerHTML = "";
+
+  routes.forEach(r=>{
+    const div = document.createElement("div");
+    div.className = "route-card";
+
+    let mapsLink = "";
+    if(nearest && userLat && userLon){
+      mapsLink = `https://www.google.com/maps/dir/?api=1&origin=${userLat},${userLon}&destination=${nearest.lat},${nearest.lon}&travelmode=walking`;
+    }
+
+    div.innerHTML = `
+      <div>
+        <b>${from} → ${to}</b>
+        <div>Bus: ${r.busNo}</div>
+        <div>Timings: ${r.time}</div>
+        <div class="${r.status==='On Time'?'status-on':'status-delay'}">
+          ${r.status}${r.delayMin?` · ${r.delayMin} min`:''}
+        </div>
+        ${nearest ? `<a class="maps-link" href="${mapsLink}" target="_blank">🚶 Walk to nearest bus stop (${nearest.name})</a>` : ""}
+      </div>
+
+      <div>
+        <div class="pill fare">${r.fare}</div>
+        <div class="pill time">Live</div>
+      </div>
+    `;
+    resultsEl.appendChild(div);
+  });
+}
+
+searchBtn.onclick = ()=> performSearch(originEl.value,destEl.value);
+
+useGpsBtn.onclick = ()=>{
+  navigator.geolocation.getCurrentPosition(pos=>{
+    userLat = pos.coords.latitude;
+    userLon = pos.coords.longitude;
+    originEl.value = `${userLat.toFixed(4)}, ${userLon.toFixed(4)}`;
+  });
+};
+</script>
+</body>
+</html>

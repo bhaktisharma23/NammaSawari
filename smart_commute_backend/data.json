@@ -1,0 +1,13 @@
+{
+  "stops": [
+    { "name": "Koramangala", "lat": 12.9352, "lng": 77.6245 },
+    { "name": "Whitefield", "lat": 12.9698, "lng": 77.7499 },
+    { "name": "Majestic", "lat": 12.9762, "lng": 77.5713 },
+    { "name": "MG Road", "lat": 12.9740, "lng": 77.6120 },
+    { "name": "Richmond Circle", "lat": 12.9665, "lng": 77.6010 }
+  ],
+  "buses": [
+    { "id": 1, "route": "A → B", "time": "10:00", "delay": 5 },
+    { "id": 2, "route": "B → C", "time": "10:15", "delay": 0 }
+  ]
+}

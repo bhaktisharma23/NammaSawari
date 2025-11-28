@@ -1,0 +1,25 @@
+{
+  "quickActions": "Quick Actions",
+  "liveTracking": "Live Tracking",
+  "planRoute": "Plan Route",
+  "nearbyStops": "Nearby Stops",
+  "reportIssue": "Report Issue",
+
+  "savedRoutes": "Saved Routes",
+  "onTime": "On Time",
+  "delayed": "Delayed",
+
+  "commuteStats": "Your Commute Stats",
+  "avgTime": "Avg. Time",
+  "tripsWeek": "Trips/Week",
+  "thisWeek": "This Week",
+
+  "busStopsHeading": "Bus Stops",
+
+  "delayTitle": "Route {route} experiencing delays",
+  "delayDesc": "Expected delay: {time} minutes due to traffic",
+  "nextLabel": "Next: {time}",
+  "routesLabel": "Routes: {routes}",
+  "busItem": "<strong>{route}</strong> — {time} — Delay: {delay} min",
+  "stopItem": "{name}"
+}

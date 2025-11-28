@@ -1,0 +1,25 @@
+{
+  "quickActions": "त्वरित कार्य",
+  "liveTracking": "लाइव ट्रैकिंग",
+  "planRoute": "मार्ग नियोजन",
+  "nearbyStops": "पास के स्टॉप",
+  "reportIssue": "समस्या रिपोर्ट करें",
+
+  "savedRoutes": "सेव किए गए मार्ग",
+  "onTime": "समय पर",
+  "delayed": "देरी",
+
+  "commuteStats": "आपकी यात्रा आँकड़े",
+  "avgTime": "औसत समय",
+  "tripsWeek": "सप्ताह में यात्राएँ",
+  "thisWeek": "इस सप्ताह",
+
+  "busStopsHeading": "बस स्टॉप",
+
+  "delayTitle": "रूट {route} में देरी हो रही है",
+  "delayDesc": "अनुमानित देरी: {time} मिनट ट्रैफिक के कारण",
+  "nextLabel": "अगली: {time}",
+  "routesLabel": "मार्ग: {routes}",
+  "busItem": "<strong>{route}</strong> — {time} — देरी: {delay} मिनट",
+  "stopItem": "{name}"
+}

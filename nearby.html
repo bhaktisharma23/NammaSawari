@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Nearby Bus Stops</title>
+  <link rel="stylesheet" href="nearby.css"/>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- Header -->
+  <div class="header-card">
+    <div class="location-row">
+      <div class="icon-box">
+        <i data-lucide="navigation"></i>
+      </div>
+      <div class="location-text">
+        <h2>Your Location</h2>
+        <p id="userLocation">Detecting location...</p>
+      </div>
+    </div>
+
+    <!-- Buttons -->
+    <button id="updateLocationBtn" class="update-btn">
+      <i data-lucide="map-pin"></i> Update location
+    </button>
+
+    <button id="addLocationBtn" class="update-btn">
+      <i data-lucide="edit"></i> Add location
+    </button>
+  </div>
+
+  <!-- Nearby Stops -->
+  <h2 class="section-title">Nearby Stops</h2>
+  <div id="stopsList" class="stops-list"></div>
+
+</div>
+
+<script>
+  const locationText = document.getElementById("userLocation");
+  const updateBtn = document.getElementById("updateLocationBtn");
+  const addBtn = document.getElementById("addLocationBtn");
+  const stopsList = document.getElementById("stopsList");
+
+  let userLat = null;
+  let userLng = null;
+
+  // Reverse geocoding lat/lon → place name
+  async function getPlaceName(lat, lon) {
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`
+      );
+      const data = await res.json();
+      return data.display_name || "Your Location";
+    } catch {
+      return "Your Location";
+    }
+  }
+
+  // Geocode manual text → lat/lon
+  async function getCoordinates(place) {
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(place)}`
+      );
+      const data = await res.json();
+
+      if (!data.length) return null;
+
+      return {
+        lat: parseFloat(data[0].lat),
+        lon: parseFloat(data[0].lon),
+        name: data[0].display_name
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  // Fetch REAL nearby bus stops
+  async function fetchRealBusStops(lat, lon) {
+    const radius = 1000;
+
+    const query = `
+      [out:json];
+      node["highway"="bus_stop"](around:${radius},${lat},${lon});
+      out;
+    `;
+
+    const url = "https://overpass-api.de/api/interpreter";
+
+    stopsList.innerHTML = "<p>Loading nearby bus stops...</p>";
+
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        body: query
+      });
+      const data = await res.json();
+
+      stopsList.innerHTML = "";
+
+      if (!data.elements.length) {
+        stopsList.innerHTML = "<p>No bus stops found nearby.</p>";
+        return;
+      }
+
+      data.elements.slice(0, 10).forEach(stop => {
+        const name = stop.tags.name || "Unnamed Bus Stop";
+        const distance = getDistance(lat, lon, stop.lat, stop.lon);
+
+        const div = document.createElement("div");
+        div.className = "stop-card";
+        div.style.cursor = "pointer";
+
+        div.innerHTML = `
+          <h4>🚌 ${name}</h4>
+          <p>${distance} meters away</p>
+          <small style="color: #2563eb;">Tap to open walking route</small>
+        `;
+
+        // ✅ CLICK → OPEN GOOGLE MAPS WALKING ROUTE
+        div.addEventListener("click", () => {
+          const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${userLat},${userLng}&destination=${stop.lat},${stop.lon}&travelmode=walking`;
+          window.open(googleMapsUrl, "_blank");
+        });
+
+        stopsList.appendChild(div);
+      });
+
+    } catch {
+      stopsList.innerHTML = "<p>Error loading bus stops.</p>";
+    }
+  }
+
+  // Distance calculation
+  function getDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371e3;
+    const φ1 = lat1 * Math.PI/180;
+    const φ2 = lat2 * Math.PI/180;
+    const Δφ = (lat2-lat1) * Math.PI/180;
+    const Δλ = (lon2-lon1) * Math.PI/180;
+
+    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+              Math.cos(φ1) * Math.cos(φ2) *
+              Math.sin(Δλ/2) * Math.sin(Δλ/2);
+
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return Math.round(R * c);
+  }
+
+  // Live GPS location
+  function detectLocation() {
+    if (!navigator.geolocation) {
+      locationText.textContent = "Geolocation not supported";
+      return;
+    }
+
+    locationText.textContent = "Detecting location...";
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        userLat = position.coords.latitude;
+        userLng = position.coords.longitude;
+
+        const placeName = await getPlaceName(userLat, userLng);
+        locationText.textContent = placeName;
+
+        fetchRealBusStops(userLat, userLng);
+      },
+      () => {
+        locationText.textContent = "Unable to get location";
+      }
+    );
+  }
+
+  // Manual location detection
+  addBtn.addEventListener("click", async () => {
+    const manualLocation = prompt("Enter your location:");
+
+    if (!manualLocation) return;
+
+    locationText.textContent = "Searching...";
+
+    const coords = await getCoordinates(manualLocation);
+
+    if (!coords) {
+      locationText.textContent = "Location not found";
+      stopsList.innerHTML = "";
+      return;
+    }
+
+    userLat = coords.lat;
+    userLng = coords.lon;
+    locationText.textContent = coords.name;
+
+    fetchRealBusStops(userLat, userLng);
+  });
+
+  updateBtn.addEventListener("click", detectLocation);
+
+  window.onload = detectLocation;
+</script>
+
+<script>lucide.createIcons();</script>
+</body>
+</html>
